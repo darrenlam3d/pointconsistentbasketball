@@ -105,9 +105,8 @@
                     <div class="form-group">
                         <label for="template">Message Template</label>
                         <select id="template">
-                            <option value="session_reminder">Session Reminder</option>
-                            <option value="payment_confirmation">Payment Confirmation</option>
-                            <option value="follow_up">Follow-up Message</option>
+                            <option value="hello_world">hello_world</option>
+                            <option value="template1">template1</option>
                         </select>
                     </div>
                     <button class="btn btn-success" onclick="sendTestMessage()">Send Message</button>
@@ -123,16 +122,12 @@
                 <h4>Message Templates</h4>
                 <ul class="template-list">
                     <li>
-                        <span>session_reminder - "Hi {{1}}, this is a reminder for your basketball session tomorrow at {{2}}."</span>
+                        <span>hello_world - Default test template provided by Meta</span>
                         <span class="template-status status-approved">Approved</span>
                     </li>
                     <li>
-                        <span>payment_confirmation - "Payment of {{1}} received. Your credit balance is now {{2}} sessions."</span>
+                        <span>template1 - Custom message template</span>
                         <span class="template-status status-approved">Approved</span>
-                    </li>
-                    <li>
-                        <span>follow_up - "Hi {{1}}, we miss you at Point Consistent Basketball! Ready to book your next session?"</span>
-                        <span class="template-status status-pending">Pending</span>
                     </li>
                 </ul>
             </div>
@@ -175,9 +170,8 @@
         var PHONE_NUMBER_ID = '1233581323176517';
         var GRAPH_VERSION = 'v25.0';
         var templates = {
-            session_reminder: { name: '3p_direct_integration_test_template', lang: 'en_US' },
-            payment_confirmation: { name: '3p_direct_integration_test_template', lang: 'en_US' },
-            follow_up: { name: '3p_direct_integration_test_template', lang: 'en_US' }
+            hello_world: { name: 'hello_world', lang: 'en_US' },
+            template1: { name: 'template1', lang: 'en_US' }
         };
         function logMessage(type, text) {
             var log = document.getElementById('messageLog');
