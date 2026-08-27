@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCB Webhook Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f5f6fa; }
+    .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 30px 20px; text-align: center; }
+    .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+    .header p { opacity: 0.8; font-size: 0.95rem; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+
+    .setup-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 30px; }
+    .setup-banner h3 { color: #856404; margin-bottom: 10px; }
+    .setup-banner p { color: #856404; font-size: 0.9rem; margin-bottom: 12px; }
+    .setup-form { display: flex; gap: 10px; flex-wrap: wrap; }
+    .setup-form input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
+    .setup-form button { padding: 10px 24px; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+    .setup-form button:hover { background: #16213e; }
+    .setup-note { font-size: 0.8rem; color: #856404; margin-top: 8px; }
+
+    .hidden { display: none !important; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
+    .stat-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    .stat-value { font-size: 2rem; font-weight: bold; color: #1a1a2e; }
+    .stat-label { color: #666; font-size: 0.85rem; margin-top: 4px; }
+
+    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .controls select, .controls input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; }
+    .controls select { min-width: 150px; }
+    .controls button { padding: 8px 18px; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .controls button:hover { background: #16213e; }
+    .controls .status { font-size: 0.8rem; color: #666; margin-left: auto; }
+
+    .message-table-wrap { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; }
+    .message-table { width: 100%; border-collapse: collapse; }
+    .message-table th { background: #1a1a2e; color: white; padding: 12px 16px; text-align: left; font-size: 0.85rem; font-weight: 600; }
+    .message-table td { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; vertical-align: top; }
+    .message-table tr:hover td { background: #f8f9fa; }
+    .message-table .empty { text-align: center; padding: 40px; color: #999; }
+
+    .kind-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; }
+    .kind-sent { background: #d4edda; color: #155724; }
+    .kind-message { background: #cce5ff; color: #004085; }
+    .kind-error { background: #f8d7da; color: #721c24; }
+    .kind-category { background: #e2d5f1; color: #4a235a; }
+    .kind-payment { background: #fff3cd; color: #856404; }
+    .kind-scan { background: #d1ecf1; color: #0c5460; }
+    .kind-other { background: #e9ecef; color: #495057; }
+
+    .detail-text { max-width: 500px; word-break: break-word; }
+    .time-text { white-space: nowrap; color: #666; }
+
+    .footer { text-align: center; padding: 30px; color: #999; font-size: 0.8rem; }
+    .footer a { color: #1a1a2e; text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .message-table { font-size: 0.8rem; }
+      .message-table th, .message-table td { padding: 8px 10px; }
+      .detail-text { max-width: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>PCB Webhook Dashboard</h1>
+    <p>WhatsApp message activity from your automation</p>
+  </header>
+
+  <div class="container">
+    <div id="setupBanner" class="setup-banner">
+      <h3>Connect to your webhook</h3>
+      <p>Enter your Google Apps Script deployment URL and API key to view messages.</p>
+      <div class="setup-form">
+        <input type="text" id="gasUrl" placeholder="GAS deployment URL (https://script.google.com/macros/s/.../exec)">
+        <input type="password" id="apiKey" placeholder="API key (from Settings sheet)">
+        <button onclick="saveConfig()">Connect</button>
+      </div>
+      <p class="setup-note">Find these in your Google Sheet: Settings tab &gt; <code>webhook_api_key</code>. Your GAS URL is the deployment link from Apps Script.</p>
+    </div>
+
+    <div id="dashboard" class="hidden">
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="statClients">-</div>
+          <div class="stat-label">Clients</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statMessages">-</div>
+          <div class="stat-label">Total Events</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSent">-</div>
+          <div class="stat-label">Messages Sent</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statErrors">-</div>
+          <div class="stat-label">Errors</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <select id="filterKind" onchange="loadMessages()">
+          <option value="">All types</option>
+          <option value="sent">Sent</option>
+          <option value="message">Inbound</option>
+          <option value="error">Errors</option>
+          <option value="category">Category</option>
+          <option value="payment">Payment</option>
+          <option value="scan">Follow-up scan</option>
+        </select>
+        <input type="number" id="msgLimit" value="100" min="10" max="500" style="width:80px" onchange="loadMessages()">
+        <button onclick="loadMessages()">Refresh</button>
+        <button onclick="toggleAutoRefresh()" id="autoRefreshBtn">Auto-refresh: OFF</button>
+        <span class="status" id="lastUpdated"></span>
+      </div>
+
+      <div class="message-table-wrap">
+        <table class="message-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody id="messageBody">
+            <tr><td colspan="3" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="https://darrenlam3d.github.io/pointconsistentbasketball/">Back to PCB</a>
+  </div>
+
+  <script>
+    var GAS_URL = localStorage.getItem('pcb_gas_url') || '';
+    var API_KEY = localStorage.getItem('pcb_api_key') || '';
+    var autoRefreshInterval = null;
+
+    function saveConfig() {
+      GAS_URL = document.getElementById('gasUrl').value.trim();
+      API_KEY = document.getElementById('apiKey').value.trim();
+      if (!GAS_URL || !API_KEY) { alert('Please fill in both fields.'); return; }
+      localStorage.setItem('pcb_gas_url', GAS_URL);
+      localStorage.setItem('pcb_api_key', API_KEY);
+      showDashboard();
+    }
+
+    function showDashboard() {
+      document.getElementById('setupBanner').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('gasUrl').value = GAS_URL;
+      loadMessages();
+      loadStats();
+    }
+
+    async function apiFetch(action, params) {
+      var url = GAS_URL + '?action=' + action + '&key=' + encodeURIComponent(API_KEY);
+      if (params) Object.keys(params).forEach(function(k) { url += '&' + k + '=' + encodeURIComponent(params[k]); });
+      var resp = await fetch(url);
+      var data = await resp.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    }
+
+    async function loadStats() {
+      try {
+        var stats = await apiFetch('stats');
+        document.getElementById('statClients').textContent = stats.clientCount || 0;
+        document.getElementById('statMessages').textContent = stats.activityCount || 0;
+        document.getElementById('statSent').textContent = (stats.byKind && stats.byKind.sent) || 0;
+        document.getElementById('statErrors').textContent = (stats.byKind && stats.byKind.error) || 0;
+      } catch (e) {
+        console.error('Stats error:', e);
+      }
+    }
+
+    async function loadMessages() {
+      var tbody = document.getElementById('messageBody');
+      var filter = document.getElementById('filterKind').value;
+      var limit = document.getElementById('msgLimit').value;
+      try {
+        var messages = await apiFetch('messages', { limit: limit });
+        if (filter) messages = messages.filter(function(m) { return m.kind === filter; });
+        if (messages.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="empty">No messages found</td></tr>';
+        } else {
+          tbody.innerHTML = messages.map(function(m) {
+            var kindClass = 'kind-other';
+            if (m.kind === 'sent') kindClass = 'kind-sent';
+            else if (m.kind === 'message') kindClass = 'kind-message';
+            else if (m.kind === 'error') kindClass = 'kind-error';
+            else if (m.kind === 'category') kindClass = 'kind-category';
+            else if (m.kind === 'payment') kindClass = 'kind-payment';
+            else if (m.kind === 'scan') kindClass = 'kind-scan';
+            return '<tr>' +
+              '<td class="time-text">' + escHtml(String(m.when || '')) + '</td>' +
+              '<td><span class="kind-badge ' + kindClass + '">' + escHtml(String(m.kind || '')) + '</span></td>' +
+              '<td class="detail-text">' + escHtml(String(m.detail || '')) + '</td>' +
+              '</tr>';
+          }).join('');
+        }
+        document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+        loadStats();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty">Error: ' + escHtml(e.message) + '</td></tr>';
+      }
+    }
+
+    function escHtml(s) {
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function toggleAutoRefresh() {
+      var btn = document.getElementById('autoRefreshBtn');
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        btn.textContent = 'Auto-refresh: OFF';
+      } else {
+        autoRefreshInterval = setInterval(loadMessages, 5000);
+        btn.textContent = 'Auto-refresh: ON';
+        loadMessages();
+      }
+    }
+
+    if (GAS_URL && API_KEY) {
+      document.getElementById('gasUrl').value = GAS_URL;
+      document.getElementById('apiKey').value = API_KEY;
+      showDashboard();
+    }
+  </script>
+</body>
+</html>
