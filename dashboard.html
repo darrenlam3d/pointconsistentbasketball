@@ -3,146 +3,247 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PCB Webhook Dashboard</title>
+  <title>PCB WhatsApp Dashboard</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; background: #f5f6fa; }
-    .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 30px 20px; text-align: center; }
-    .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-    .header p { opacity: 0.8; font-size: 0.95rem; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2d2d2d; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 28px 20px; text-align: center; }
+    .header h1 { font-size: 1.7rem; margin-bottom: 6px; letter-spacing: 0.3px; }
+    .header p { opacity: 0.85; font-size: 1rem; }
+    .container { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
 
-    .setup-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 30px; }
-    .setup-banner h3 { color: #856404; margin-bottom: 10px; }
-    .setup-banner p { color: #856404; font-size: 0.9rem; margin-bottom: 12px; }
-    .setup-form { display: flex; gap: 10px; flex-wrap: wrap; }
-    .setup-form input { flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
-    .setup-form button { padding: 10px 24px; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap; }
-    .setup-form button:hover { background: #16213e; }
-    .setup-note { font-size: 0.8rem; color: #856404; margin-top: 8px; }
+    /* ---- Setup ---- */
+    .setup-card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-top: 16px; text-align: center; }
+    .setup-card h2 { color: #1a1a2e; margin-bottom: 6px; }
+    .setup-card p { color: #666; margin-bottom: 20px; }
+    .setup-form { display: flex; flex-direction: column; gap: 12px; max-width: 520px; margin: 0 auto; }
+    .setup-form input { padding: 14px 16px; border: 1.5px solid #d9d9d9; border-radius: 10px; font-size: 1rem; }
+    .setup-form input:focus { outline: none; border-color: #1a1a2e; }
+    .setup-form button { padding: 14px; background: #25D366; color: white; border: none; border-radius: 10px; font-size: 1.05rem; font-weight: 700; cursor: pointer; }
+    .setup-form button:hover { background: #1ebe5a; }
+    .setup-note { font-size: 0.82rem; color: #999; margin-top: 16px; line-height: 1.5; }
 
     .hidden { display: none !important; }
 
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
-    .stat-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-    .stat-value { font-size: 2rem; font-weight: bold; color: #1a1a2e; }
-    .stat-label { color: #666; font-size: 0.85rem; margin-top: 4px; }
+    /* ---- Stats ---- */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .stat-card { background: white; border-radius: 14px; padding: 18px 14px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .stat-value { font-size: 2rem; font-weight: 800; color: #1a1a2e; }
+    .stat-label { color: #888; font-size: 0.8rem; margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
 
-    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-    .controls select, .controls input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; }
-    .controls select { min-width: 150px; }
-    .controls button { padding: 8px 18px; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .controls button:hover { background: #16213e; }
-    .controls .status { font-size: 0.8rem; color: #666; margin-left: auto; }
+    /* ---- Controls ---- */
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar input[type=text] { flex: 1; min-width: 200px; padding: 11px 14px; border: 1.5px solid #d9d9d9; border-radius: 10px; font-size: 0.95rem; }
+    .toolbar input[type=text]:focus { outline: none; border-color: #1a1a2e; }
+    .toolbar select { padding: 11px 12px; border: 1.5px solid #d9d9d9; border-radius: 10px; font-size: 0.95rem; background: white; }
+    .toolbar .btn { padding: 11px 16px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .btn-refresh { background: #1a1a2e; color: white; }
+    .btn-refresh:hover { background: #16213e; }
+    .btn-auto.on { background: #25D366; color: white; }
+    .btn-auto.off { background: #eee; color: #666; }
 
-    .message-table-wrap { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); overflow: hidden; }
-    .message-table { width: 100%; border-collapse: collapse; }
-    .message-table th { background: #1a1a2e; color: white; padding: 12px 16px; text-align: left; font-size: 0.85rem; font-weight: 600; }
-    .message-table td { padding: 10px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; vertical-align: top; }
-    .message-table tr:hover td { background: #f8f9fa; }
-    .message-table .empty { text-align: center; padding: 40px; color: #999; }
+    /* ---- Activity feed ---- */
+    .feed { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+    .feed-header { padding: 14px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+    .feed-header .dot { width: 9px; height: 9px; border-radius: 50%; background: #25D366; display: inline-block; }
+    .feed-header span { font-weight: 700; color: #1a1a2e; font-size: 0.95rem; }
+    .feed-body { max-height: 70vh; overflow-y: auto; padding: 8px 16px; }
+    .empty { text-align: center; padding: 48px 20px; color: #aaa; }
+    .empty .big-emoji { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+    .empty p { font-size: 0.95rem; }
 
-    .kind-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; }
-    .kind-sent { background: #d4edda; color: #155724; }
-    .kind-message { background: #cce5ff; color: #004085; }
-    .kind-error { background: #f8d7da; color: #721c24; }
-    .kind-category { background: #e2d5f1; color: #4a235a; }
-    .kind-payment { background: #fff3cd; color: #856404; }
-    .kind-scan { background: #d1ecf1; color: #0c5460; }
-    .kind-other { background: #e9ecef; color: #495057; }
+    /* ---- Timeline item ---- */
+    .item { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #f7f7f7; }
+    .item:last-child { border-bottom: none; }
+    .item-icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+    .icon-sent { background: #e6f7ee; }
+    .icon-received { background: #eaf1fd; }
+    .icon-system { background: #f3e9fb; }
+    .icon-payment { background: #fff6e0; }
+    .icon-error { background: #fdecea; }
+    .icon-scan { background: #e8f6f7; }
+    .item-content { flex: 1; }
+    .item-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+    .item-label { font-weight: 700; font-size: 0.9rem; color: #1a1a2e; }
+    .item-time { font-size: 0.78rem; color: #aaa; }
+    .item-text { font-size: 0.92rem; color: #444; word-break: break-word; }
+    .phone-pill { display: inline-block; background: #f0f0f0; color: #555; padding: 2px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
 
-    .detail-text { max-width: 500px; word-break: break-word; }
-    .time-text { white-space: nowrap; color: #666; }
-
-    .footer { text-align: center; padding: 30px; color: #999; font-size: 0.8rem; }
+    .footer { text-align: center; padding: 26px; color: #aaa; font-size: 0.8rem; }
     .footer a { color: #1a1a2e; text-decoration: none; }
 
-    @media (max-width: 768px) {
-      .message-table { font-size: 0.8rem; }
-      .message-table th, .message-table td { padding: 8px 10px; }
-      .detail-text { max-width: 200px; }
+    @media (max-width: 560px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .item-icon { width: 36px; height: 36px; font-size: 1.1rem; }
     }
   </style>
 </head>
 <body>
   <header class="header">
-    <h1>PCB Webhook Dashboard</h1>
-    <p>WhatsApp message activity from your automation</p>
+    <h1>💬 PCB WhatsApp Dashboard</h1>
+    <p>See what's happening on your business WhatsApp in plain English</p>
   </header>
 
   <div class="container">
-    <div id="setupBanner" class="setup-banner">
-      <h3>Connect to your webhook</h3>
-      <p>Enter your Google Apps Script deployment URL and API key to view messages.</p>
+    <div id="setupCard" class="setup-card">
+      <h2>Connect your dashboard</h2>
+      <p>Enter your web link and secret key to get started. You'll only need to do this once.</p>
       <div class="setup-form">
-        <input type="text" id="gasUrl" placeholder="GAS deployment URL (https://script.google.com/macros/s/.../exec)">
-        <input type="password" id="apiKey" placeholder="API key (from Settings sheet)">
-        <button onclick="saveConfig()">Connect</button>
+        <input type="text" id="gasUrl" placeholder="Your web link (Paste the link that ends in /exec)">
+        <input type="text" id="apiKey" placeholder="Your secret key (from your Settings sheet)">
+        <button onclick="saveConfig()">Connect Dashboard</button>
       </div>
-      <p class="setup-note">Find these in your Google Sheet: Settings tab &gt; <code>webhook_api_key</code>. Your GAS URL is the deployment link from Apps Script.</p>
+      <p class="setup-note">Need help? The web link is the URL you deployed from Apps Script.<br>The secret key is the value next to <code>webhook_api_key</code> in your Google Sheet's Settings tab.</p>
     </div>
 
     <div id="dashboard" class="hidden">
       <div class="stats">
         <div class="stat-card">
-          <div class="stat-value" id="statClients">-</div>
-          <div class="stat-label">Clients</div>
+          <div class="stat-value" id="statClients">–</div>
+          <div class="stat-label">Customers</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="statMessages">-</div>
-          <div class="stat-label">Total Events</div>
+          <div class="stat-value" id="statMessages">–</div>
+          <div class="stat-label">Total Activity</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="statSent">-</div>
+          <div class="stat-value" id="statSent">–</div>
           <div class="stat-label">Messages Sent</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value" id="statErrors">-</div>
-          <div class="stat-label">Errors</div>
+          <div class="stat-value" id="statErrors">–</div>
+          <div class="stat-label">Problems</div>
         </div>
       </div>
 
-      <div class="controls">
-        <select id="filterKind" onchange="loadMessages()">
-          <option value="">All types</option>
-          <option value="sent">Sent</option>
-          <option value="message">Inbound</option>
-          <option value="error">Errors</option>
-          <option value="category">Category</option>
-          <option value="payment">Payment</option>
-          <option value="scan">Follow-up scan</option>
+      <div class="toolbar">
+        <input type="text" id="searchBox" placeholder="🔍 Search phone, name, or keyword..." oninput="renderFeed()">
+        <select id="filterKind" onchange="renderFeed()">
+          <option value="">Show everything</option>
+          <option value="sent">Messages we sent</option>
+          <option value="message">Messages received</option>
+          <option value="category">Category picked</option>
+          <option value="payment">Payment received</option>
+          <option value="scan">Follow-up checks</option>
+          <option value="error">Problems</option>
         </select>
-        <input type="number" id="msgLimit" value="100" min="10" max="500" style="width:80px" onchange="loadMessages()">
-        <button onclick="loadMessages()">Refresh</button>
-        <button onclick="toggleAutoRefresh()" id="autoRefreshBtn">Auto-refresh: OFF</button>
-        <span class="status" id="lastUpdated"></span>
+        <button class="btn btn-refresh" onclick="loadStats(); renderFeed();">⟳ Refresh</button>
+        <button class="btn btn-auto off" id="autoBtn" onclick="toggleAuto()">Live updates: Off</button>
       </div>
 
-      <div class="message-table-wrap">
-        <table class="message-table">
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Type</th>
-              <th>Detail</th>
-            </tr>
-          </thead>
-          <tbody id="messageBody">
-            <tr><td colspan="3" class="empty">Loading...</td></tr>
-          </tbody>
-        </table>
+      <div class="feed">
+        <div class="feed-header">
+          <span class="dot"></span>
+          <span>Live activity</span>
+        </div>
+        <div class="feed-body" id="feedBody">
+          <div class="empty"><span class="big-emoji">⏳</span><p>Loading...</p></div>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="footer">
-    <a href="https://darrenlam3d.github.io/pointconsistentbasketball/">Back to PCB</a>
+    <a href="https://darrenlam3d.github.io/pointconsistentbasketball/">← Back to Point Consistent Basketball</a>
   </div>
 
   <script>
     var GAS_URL = localStorage.getItem('pcb_gas_url') || '';
     var API_KEY = localStorage.getItem('pcb_api_key') || '';
-    var autoRefreshInterval = null;
+    var autoTimer = null;
+    var allMessages = [];
+    var currentFilter = '';
+
+    function displayPhone(raw) {
+      var s = String(raw || '').replace(/\D/g, '');
+      if (s.startsWith('65') && s.length === 10) s = s.slice(2);
+      return '+65 ' + s;
+    }
+
+    function humanDate(raw) {
+      var m = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+      if (!m) return raw || '';
+      var year = +m[1], mon = +m[2] - 1, day = +m[3], h = +m[4], min = +m[5];
+      var d = new Date(year, mon, day, h, min);
+      var now = new Date();
+      var sameDay = d.toDateString() === now.toDateString();
+      var timeStr = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      if (sameDay) return 'Today, ' + timeStr;
+      return d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ', ' + timeStr;
+    }
+
+    // Turn a raw event into a friendly, human-readable card
+    function describe(m) {
+      var kind = m.kind || '';
+      var detail = String(m.detail || '');
+      var icon, label, text = detail, phone = '';
+
+      if (kind === 'sent') {
+        icon = '📤'; label = 'Message sent';
+        try {
+          var p = JSON.parse(detail);
+          if (p && p.to) { phone = displayPhone(p.to); }
+          if (p && p.type === 'template') text = 'A pre-approved template message was sent.';
+          else if (p && p.type === 'interactive') text = 'An interactive menu/reply was sent.';
+          else if (p && p.type === 'text') text = 'A text message was sent.';
+          else text = detail;
+        } catch (e) { /* keep raw */ }
+      } else if (kind === 'message') {
+        icon = '📥'; label = 'Activity from customer';
+        // format: "needs manual reply: PHONE: TEXT"
+        var m2 = detail.match(/needs manual reply:\s*(\d+):\s*([\s\S]*)/);
+        if (m2) { phone = displayPhone(m2[1]); text = 'Need to reply: "' + m2[2] + '"'; label = 'Needs your reply'; }
+      } else if (kind === 'category') {
+        icon = '🏷️'; label = 'Category selected';
+        var m3 = detail.match(/(\d+) -> (\w+)/);
+        if (m3) { phone = displayPhone(m3[1]); text = 'Customer chose: ' + m3[2]; }
+      } else if (kind === 'payment') {
+        icon = '💰'; label = 'Payment confirmed';
+        var m4 = detail.match(/confirmed for (\d+)/);
+        if (m4) { phone = displayPhone(m4[1]); text = 'Payment confirmed for this customer.'; }
+      } else if (kind === 'scan') {
+        icon = '🔍'; label = 'Automatic follow-up run';
+      } else if (kind === 'error') {
+        icon = '⚠️'; label = 'Something went wrong';
+      } else {
+        icon = 'ℹ️'; label = kind;
+      }
+
+      var html = '<div class="item">' +
+        '<div class="item-icon icon-' + (kind === 'sent' ? 'sent' : kind === 'message' ? 'received' : kind === 'payment' ? 'payment' : kind === 'error' ? 'error' : kind === 'scan' ? 'scan' : 'system') + '">' + icon + '</div>' +
+        '<div class="item-content">' +
+          '<div class="item-top">' +
+            '<span class="item-label">' + escHtml(label) + '</span>' +
+            (phone ? '<span class="phone-pill">' + escHtml(phone) + '</span>' : '') +
+            '<span class="item-time">' + escHtml(humanDate(m.when)) + '</span>' +
+          '</div>' +
+          '<div class="item-text">' + escHtml(text) + '</div>' +
+        '</div>' +
+      '</div>';
+      return html;
+    }
+
+    function matchesSearch(m, q) {
+      if (!q) return true;
+      var hay = ((m.kind || '') + ' ' + (m.detail || '')).toLowerCase();
+      return hay.indexOf(q.toLowerCase()) >= 0;
+    }
+
+    function renderFeed() {
+      var q = document.getElementById('searchBox').value.trim();
+      var filter = document.getElementById('filterKind').value;
+      var body = document.getElementById('feedBody');
+      var list = allMessages.filter(function(m) {
+        return (!filter || m.kind === filter) && matchesSearch(m, q);
+      });
+      if (list.length === 0) {
+        body.innerHTML = '<div class="empty"><span class="big-emoji">' + (q || filter ? '🔍' : '💤') + '</span><p>' +
+          (q || filter ? 'No items match your search.' : 'No activity yet. Messages will appear here automatically.') + '</p></div>';
+      } else {
+        body.innerHTML = list.map(describe).join('');
+      }
+    }
 
     function saveConfig() {
       GAS_URL = document.getElementById('gasUrl').value.trim();
@@ -154,11 +255,9 @@
     }
 
     function showDashboard() {
-      document.getElementById('setupBanner').classList.add('hidden');
+      document.getElementById('setupCard').classList.add('hidden');
       document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('gasUrl').value = GAS_URL;
-      loadMessages();
-      loadStats();
+      refreshAll();
     }
 
     async function apiFetch(action, params) {
@@ -177,40 +276,17 @@
         document.getElementById('statMessages').textContent = stats.activityCount || 0;
         document.getElementById('statSent').textContent = (stats.byKind && stats.byKind.sent) || 0;
         document.getElementById('statErrors').textContent = (stats.byKind && stats.byKind.error) || 0;
-      } catch (e) {
-        console.error('Stats error:', e);
-      }
+      } catch (e) { /* ignore */ }
     }
 
-    async function loadMessages() {
-      var tbody = document.getElementById('messageBody');
-      var filter = document.getElementById('filterKind').value;
-      var limit = document.getElementById('msgLimit').value;
+    async function refreshAll() {
       try {
-        var messages = await apiFetch('messages', { limit: limit });
-        if (filter) messages = messages.filter(function(m) { return m.kind === filter; });
-        if (messages.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3" class="empty">No messages found</td></tr>';
-        } else {
-          tbody.innerHTML = messages.map(function(m) {
-            var kindClass = 'kind-other';
-            if (m.kind === 'sent') kindClass = 'kind-sent';
-            else if (m.kind === 'message') kindClass = 'kind-message';
-            else if (m.kind === 'error') kindClass = 'kind-error';
-            else if (m.kind === 'category') kindClass = 'kind-category';
-            else if (m.kind === 'payment') kindClass = 'kind-payment';
-            else if (m.kind === 'scan') kindClass = 'kind-scan';
-            return '<tr>' +
-              '<td class="time-text">' + escHtml(String(m.when || '')) + '</td>' +
-              '<td><span class="kind-badge ' + kindClass + '">' + escHtml(String(m.kind || '')) + '</span></td>' +
-              '<td class="detail-text">' + escHtml(String(m.detail || '')) + '</td>' +
-              '</tr>';
-          }).join('');
-        }
-        document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+        allMessages = await apiFetch('messages', { limit: 200 });
+        renderFeed();
         loadStats();
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="3" class="empty">Error: ' + escHtml(e.message) + '</td></tr>';
+        document.getElementById('feedBody').innerHTML =
+          '<div class="empty"><span class="big-emoji">🚫</span><p>Couldn’t connect to your web link. Check the link and key are correct.</p></div>';
       }
     }
 
@@ -220,16 +296,15 @@
       return div.innerHTML;
     }
 
-    function toggleAutoRefresh() {
-      var btn = document.getElementById('autoRefreshBtn');
-      if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-        autoRefreshInterval = null;
-        btn.textContent = 'Auto-refresh: OFF';
+    function toggleAuto() {
+      var btn = document.getElementById('autoBtn');
+      if (autoTimer) {
+        clearInterval(autoTimer); autoTimer = null;
+        btn.textContent = 'Live updates: Off'; btn.className = 'btn btn-auto off';
       } else {
-        autoRefreshInterval = setInterval(loadMessages, 5000);
-        btn.textContent = 'Auto-refresh: ON';
-        loadMessages();
+        autoTimer = setInterval(refreshAll, 5000);
+        btn.textContent = 'Live updates: On'; btn.className = 'btn btn-auto on';
+        refreshAll();
       }
     }
 
