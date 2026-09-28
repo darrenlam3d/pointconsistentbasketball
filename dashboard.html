@@ -115,6 +115,20 @@
           <div class="stat-value" id="statErrors">–</div>
           <div class="stat-label">Problems</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statUnverified">-</div>
+          <div class="stat-label">Payments to Verify</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statFollowUpCap">-</div>
+          <div class="stat-label">Follow-ups Stopped</div>
+        </div>
+      </div>
+
+      <div class="empty" id="actionBanner" style="display:none">
+        <p><strong>Needs your attention:</strong> <span id="actionText"></span>
+        <br>Run <em>Verify payment</em> in the spreadsheet, or set <em>admin_phones</em> to get this by WhatsApp.</p>
+      </div>
       </div>
 
       <div class="toolbar">
@@ -276,6 +290,23 @@
         document.getElementById('statMessages').textContent = stats.activityCount || 0;
         document.getElementById('statSent').textContent = (stats.byKind && stats.byKind.sent) || 0;
         document.getElementById('statErrors').textContent = (stats.byKind && stats.byKind.error) || 0;
+
+        // Work only a human can do. Visible here so it still shows up when
+        // admin_phones is blank and the daily digest cannot be texted.
+        var need = stats.actionNeeded || {};
+        document.getElementById('statUnverified').textContent = need.unverifiedPayments || 0;
+        document.getElementById('statFollowUpCap').textContent = need.followUpLimit || 0;
+        var parts = [];
+        if (need.unverifiedPayments) parts.push(need.unverifiedPayments + ' client(s) said they paid but are unverified');
+        if (need.followUpLimit) parts.push(need.followUpLimit + ' lead(s) hit the follow-up limit and stopped being chased');
+        if (need.zeroCredits) parts.push(need.zeroCredits + ' onboarded client(s) are on 0 credits');
+        var banner = document.getElementById('actionBanner');
+        if (parts.length) {
+          document.getElementById('actionText').textContent = parts.join('; ') + '.';
+          banner.style.display = '';
+        } else {
+          banner.style.display = 'none';
+        }
       } catch (e) { /* ignore */ }
     }
 
